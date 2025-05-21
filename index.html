@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Job Board</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-gray-100">
+  <div class="max-w-3xl mx-auto p-6 space-y-6">
+    <h1 class="text-3xl font-bold text-center text-blue-700">AI Job Board Assistant</h1>
+
+    <!-- Step 1: Ask Name -->
+    <div id="step-name" class="bg-white p-6 rounded-xl shadow space-y-4">
+      <label class="block text-lg font-medium">What is your name?</label>
+      <input id="userName" type="text" class="w-full p-2 border rounded" placeholder="Enter your name..." />
+      <button onclick="nextStep('step-profession')" class="submit-btn">Next</button>
+    </div>
+
+    <!-- Step 2: Ask Profession -->
+    <div id="step-profession" class="hidden bg-white p-6 rounded-xl shadow space-y-4">
+      <label class="block text-lg font-medium">What is your profession?</label>
+      <input id="userProfession" type="text" class="w-full p-2 border rounded" placeholder="e.g., Frontend Developer" />
+      <button onclick="nextStep('step-resume')" class="submit-btn">Next</button>
+    </div>
+
+    <!-- Step 3: Resume Upload -->
+    <div id="step-resume" class="hidden bg-white p-6 rounded-xl shadow space-y-4">
+      <p class="text-lg font-medium" id="greetingMsg"></p>
+      <label class="block">Paste your resume:</label>
+      <textarea id="resume" class="w-full border rounded p-2 h-40" placeholder="Paste your resume here..."></textarea>
+      <button onclick="submitResume()" class="submit-btn">Submit Resume</button>
+    </div>
+
+    <!-- Step 4: Feedback + Matches -->
+    <div id="step-results" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-xl font-semibold mb-2">AI Feedback</h2>
+        <div id="feedback" class="text-gray-700"></div>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-xl font-semibold mb-4">Top Job Matches</h2>
+        <div id="job-list" class="grid gap-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function nextStep(stepId) {
+      document.querySelectorAll('[id^="step-"]').forEach(div => div.classList.add('hidden'));
+      document.getElementById(stepId).classList.remove('hidden');
+
+      // If greeting message is needed
+      if (stepId === 'step-resume') {
+        const name = document.getElementById('userName').value.trim();
+        const prof = document.getElementById('userProfession').value.trim();
+        document.getElementById('greetingMsg').textContent = `Hi ${name}! As a ${prof}, let's analyze your resume.`;
+      }
+    }
+
+    function submitResume() {
+      const resume = document.getElementById('resume').value;
+      const feedbackDiv = document.getElementById('feedback');
+      const jobList = document.getElementById('job-list');
+
+      if (!resume.trim()) {
+        alert('Please paste your resume.');
+        return;
+      }
+
+      nextStep('step-results');
+
+      // Typing animation
+      let text = "Your resume is strong in frontend technologies. Consider improving backend experience for full-stack roles.";
+      feedbackDiv.innerHTML = "<span id='typed'></span>";
+      let i = 0;
+      const interval = setInterval(() => {
+        document.getElementById('typed').textContent += text.charAt(i);
+        i++;
+        if (i >= text.length) clearInterval(interval);
+      }, 25);
+
+      // Job match scoring
+      const keywords = {
+        frontend: ['react', 'javascript', 'css', 'html'],
+        backend: ['node', 'express', 'api', 'python'],
+        data: ['data', 'pandas', 'numpy', 'ml', 'model'],
+      };
+
+      function score(category) {
+        return keywords[category].reduce((s, word) => s + (resume.toLowerCase().includes(word) ? 25 : 0), 0);
+      }
+
+      const matches = [
+        { title: 'Frontend Developer', score: score('frontend') },
+        { title: 'Backend Engineer', score: score('backend') },
+        { title: 'Data Scientist', score: score('data') },
+      ];
+
+      jobList.innerHTML = '';
+      matches.forEach(job => {
+        jobList.innerHTML += `
+          <div class="job-card">
+            <h3 class="text-lg font-bold">${job.title}</h3>
+            <p class="text-sm text-gray-600">Match Score: ${job.score}%</p>
+            <button class="apply-btn">Apply</button>
+          </div>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>
